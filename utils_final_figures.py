@@ -177,6 +177,10 @@ def plot_infidelities(save_path=None):
 
     plt.tight_layout()
 
+    # create save path if not exists
+    if save_path is not None and not os.path.exists(save_path):
+        os.makedirs(save_path)
+
     if save_path is not None:
         fig.savefig(os.path.join(save_path, f'qubit_fidelities_{c}.png'), dpi=300)
         fig.savefig(os.path.join(save_path, f'qubit_fidelities_{c}.pdf'), dpi=300, transparent=True)
@@ -260,8 +264,12 @@ def plot_raw_data(qubit, num_holes, gate, properties=['LSES', 'drive_efficiency'
                             bottom=0.25,
                             right=0.83,
                             top=0.78)
+
+        # create save path if not exists
+        if save_path is not None and not os.path.exists(save_path):
+            os.makedirs(save_path)
+
         if save_path is not None:
-            # fig.savefig(os.path.join(save_path, f'raw_data_{qubit}_{num_holes}_{gate}_{property}.png'), dpi=300)
             fig.savefig(os.path.join(save_path, f'raw_data_{qubit}_{num_holes}_{gate}_{property}.pdf'), dpi=300,
                         transparent=True)
         plt.show()
@@ -302,6 +310,10 @@ def plot_raw_data(qubit, num_holes, gate, properties=['LSES', 'drive_efficiency'
                                 bottom=0.25,
                                 right=0.83,
                                 top=0.78)
+
+            # create save path if not exists
+            if save_path is not None and not os.path.exists(save_path):
+                os.makedirs(save_path)
 
             if save_path is not None:
                 # fig.savefig(os.path.join(save_path, f'raw_data_fft_{qubit}_{num_holes}_{gate}_{property}.png'), dpi=300)
@@ -374,6 +386,10 @@ def plot_boxplot_ratios(save_path=None):
     ax.set_yscale('log')
 
     plt.tight_layout()
+
+    # create save path if not exists
+    if save_path is not None and not os.path.exists(save_path):
+        os.makedirs(save_path)
 
     if save_path is not None:
         # fig.savefig(os.path.join(save_path, f"{file_name}.png"), dpi=300, transparent=True)
@@ -478,6 +494,10 @@ def plot_locality_boxplots(num_holes=['1h', '3h'], gate_types=['plunger', 'barri
 
             plt.tight_layout()
 
+            # create save path if not exists
+            if save_path is not None and not os.path.exists(save_path):
+                os.makedirs(save_path)
+
             if save_path is not None:
                 file_name = f'locality_boxplot_{gate_type}_{hole}ole'
                 # fig.savefig(os.path.join(save_path, f"{file_name}.png"), dpi=300, transparent=True)
@@ -542,6 +562,10 @@ def plot_locality_array(num_holes=['1h', '3h'], gate_types=['plunger', 'barrier'
                 plt.title(f'Drive efficiency {gate_type} {hole}ole')
 
             plt.tight_layout()
+
+            # create save path if not exists
+            if save_path is not None and not os.path.exists(save_path):
+                os.makedirs(save_path)
 
             if save_path is not None:
                 # plt.savefig(save_path / f'drive_efficiency_{gate_type}_{hole}ole.png')
