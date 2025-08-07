@@ -165,3 +165,12 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
+/theory/images/SVG/Asset 11.svg
+/.idea/inspectionProfiles/profiles_settings.xml
+/.idea/inspectionProfiles/Project_Default.xml
+/.idea/runConfigurations/ten_qubit_array.xml
+/.idea/.gitignore
+/.idea/code_repo.iml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/vcs.xml
