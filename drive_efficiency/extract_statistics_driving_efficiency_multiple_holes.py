@@ -1,9 +1,8 @@
 # %% Path management
 
-from pathlib import Path
-from config import DATA_DIR
+from config import DATA_DIR, PROJECT_DIR
 
-script_dir = Path(__file__).resolve().parent
+script_dir = PROJECT_DIR / 'drive_efficiency'
 fig_path = script_dir / "images"
 data_path = DATA_DIR
 subfolder = fig_path / 'driving_efficiency_extraction'
@@ -67,6 +66,7 @@ for qubit in uuids:
                 fig_pl.suptitle(f'{qubit} ({num_holes})', size=12, weight='bold')
                 fig_pl.savefig(os.path.join(subfolder, f"{file_name}.png"), dpi=300, transparent=True)
                 fig_pl.savefig(os.path.join(subfolder, f"{file_name}.pdf"), dpi=300, transparent=True)
+                print(f"Saved figure {file_name}.pfd to {subfolder}")
 
         if do_barriers:
             uuids_barrier = uuids[qubit][num_holes]['barrier']
@@ -86,6 +86,7 @@ for qubit in uuids:
                 # plt.tight_layout()
                 fig_bar.savefig(os.path.join(subfolder, f"{file_name}.png"), dpi=300, transparent=True)
                 fig_bar.savefig(os.path.join(subfolder, f"{file_name}.pdf"), dpi=300, transparent=True)
+                print(f"Saved figure {file_name}.pfd to {subfolder}")
 
         if do_plungers and do_plungers:
             slopes[qubit][num_holes] = slope_plungers + slope_barriers
@@ -118,5 +119,8 @@ ds_driving_3hole = pd.DataFrame(slope_3h_driving, index=qubits, columns=gates)
 ds_driving_5hole = pd.DataFrame(slope_5h_driving, index=qubits, columns=gates)
 
 ds_driving_1hole.to_csv(os.path.join(data_path, 'driving_strength_1hole.csv'))
+print(f"Saved driving strength data for 1 hole to {os.path.join(data_path, 'driving_strength_1hole.csv')}")
 ds_driving_3hole.to_csv(os.path.join(data_path, 'driving_strength_3hole.csv'))
+print(f"Saved driving strength data for 3 holes to {os.path.join(data_path, 'driving_strength_3hole.csv')}")
 ds_driving_5hole.to_csv(os.path.join(data_path, 'driving_strength_5hole.csv'))
+print(f"Saved driving strength data for 5 holes to {os.path.join(data_path, 'driving_strength_5hole.csv')}")

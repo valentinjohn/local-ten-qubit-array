@@ -6,12 +6,9 @@ from pathlib import Path
 import os
 from utils.analysis_tools import cm2inch
 
-from config import DATA_DIR
+from config import DATA_DIR, PROJECT_DIR
 
-try:
-    script_dir = Path(__file__).resolve().parent
-except:
-    script_dir = Path(os.getcwd()) / 'electric_field'
+script_dir = PROJECT_DIR / 'electric_field'
 fig_path = script_dir / "images"
 data_path = DATA_DIR
 

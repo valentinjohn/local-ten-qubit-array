@@ -1,14 +1,8 @@
 # %% Path management
 
-import os
-from pathlib import Path
-from config import DATA_DIR
+from config import DATA_DIR, PROJECT_DIR
 
-try:
-    script_dir = Path(__file__).resolve().parent
-except:
-    script_dir = Path(os.getcwd()) / 'gfactor_tunability'
-
+script_dir = PROJECT_DIR / 'gfactor_tunability'
 fig_path = script_dir / "images"
 data_path = DATA_DIR
 subfolder = fig_path / 'gfactor_tunability_extraction'
@@ -17,7 +11,6 @@ subfolder = fig_path / 'gfactor_tunability_extraction'
 
 from utils import *
 from gfactor_tunability.utils_statistics_gfactor_tunability import gfactor_tunability_plot, create_nested_dict
-
 
 # %% load uuids
 import json
@@ -83,7 +76,8 @@ ds_gfactor_3hole = pd.DataFrame(slope_3h_gfactor, index=qubits, columns=gates)
 ds_gfactor_5hole = pd.DataFrame(slope_5h_gfactor, index=qubits, columns=gates)
 
 ds_gfactor_1hole.to_csv(os.path.join(data_path, 'gfactor_tunability_1hole.csv'))
+print(f'Saved g-factor tunability data for 1 hole to {data_path / "gfactor_tunability_1hole.csv"}')
 ds_gfactor_3hole.to_csv(os.path.join(data_path, 'gfactor_tunability_3hole.csv'))
+print(f'Saved g-factor tunability data for 3 holes to {data_path / "gfactor_tunability_3hole.csv"}')
 ds_gfactor_5hole.to_csv(os.path.join(data_path, 'gfactor_tunability_5hole.csv'))
-
-print('finished')
+print(f'Saved g-factor tunability data for 5 holes to {data_path / "gfactor_tunability_5hole.csv"}')
