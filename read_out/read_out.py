@@ -41,17 +41,6 @@ uuid_qubits = {'Q1': 1_712_302_934_272_283_691,
 # create empty dataframe
 df = pd.DataFrame(index=['PSB pair', 'sensor', 'visibility', 't_measure', 't_settle'], columns=uuid_qubits.keys())
 
-# df.loc['PSB pair', 'Q1'] = 'q1,q4'
-# df.loc['PSB pair', 'Q2'] = 'q2,q6'
-# df.loc['PSB pair', 'Q3'] = 'q3,q7'
-# df.loc['PSB pair', 'Q4'] = 'q4,q8'
-# df.loc['PSB pair', 'Q5'] = 'q5,q9'
-# df.loc['PSB pair', 'Q6'] = 'q2,q6'
-# df.loc['PSB pair', 'Q7'] = 'q7,q10'
-# df.loc['PSB pair', 'Q8'] = 'q4,q8'
-# df.loc['PSB pair', 'Q9'] = 'q5,q9'
-# df.loc['PSB pair', 'Q10'] = 'q7,q10'
-
 for qubit, uuid in uuid_qubits.items():
     print('----------')
     print(f'Qubit {qubit}')
@@ -81,3 +70,5 @@ for qubit, uuid in uuid_qubits.items():
     df.loc['visibility', qubit] = np.round(visibility, 2)
     df.loc['t_measure', qubit] = np.round(t_measure, 2)
     df.loc['t_settle', qubit] = np.round(t_settle, 2)
+
+df.pr
