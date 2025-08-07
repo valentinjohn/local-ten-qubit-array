@@ -1,12 +1,12 @@
 # %% imports
 
-from drive_locality import utils_nearest_neighbours as unn
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
 from scipy.optimize import differential_evolution
 from tqdm import tqdm
+
+from drive_locality import utils_nearest_neighbours as unn
 
 # %% definitions
 
@@ -82,6 +82,76 @@ def fill_by_rank(rank_matrix, values):
             filled[mask] = np.nan
 
     return filled
+
+def f_rabi_function(f_rabi, f_rabi_target, f_larmor, f_drive):
+    if f_rabi == 0:
+        return 0.0
+    t_rabi = 1 / (2*f_rabi_target)
+    return f_rabi ** 2 / (2 * (f_rabi ** 2 + (f_larmor - f_drive) ** 2)) * (1 - np.cos(2*np.pi*np.sqrt(f_rabi**2 + (f_larmor - f_drive)**2) * t_rabi))
+
+def f_rabi_function_envelope(f_rabi, f_larmor, f_drive):
+    if f_rabi == 0:
+        return 0.0
+    return f_rabi ** 2 / (f_rabi ** 2 + (f_larmor - f_drive) ** 2)
+
+
+def get_crosstalk_df(df, df_rabi, larmor_frequencies=[300] * 16):
+    df_larmor_const = df.copy()
+    for subnumber in sorted(df_larmor_const['subnumber'].unique()):
+        # assign the same Larmor frequency to all qubits with the same subnumber
+        larmor_freq = larmor_frequencies[subnumber - 1]  # subnumber starts at 1
+        df_larmor_const.loc[df_larmor_const['subnumber'] == subnumber, 'larmor_frequency'] = larmor_freq
+
+    qubit_to_larmor = df_larmor_const['larmor_frequency'].to_dict()
+    gate_to_larmor = (
+        df_larmor_const.set_index('plunger_name')['larmor_frequency']
+        .dropna()
+        .to_dict()
+    )
+    result = np.zeros_like(df_rabi.values, dtype=float)
+    for i, qubit in enumerate(df_rabi.index):
+        f_larmor = qubit_to_larmor[qubit]
+        for j, gate in enumerate(df_rabi.columns):
+            f_rabi = df_rabi.iat[i, j]
+            if i != j:
+                if f_rabi != 0:
+                    f_drive = gate_to_larmor.get(gate, np.nan)
+                    if not np.isnan(f_drive):
+                        result[i, j] = f_rabi_function_envelope(f_rabi, f_larmor, f_drive)
+                        if np.isnan(result[i, j]):
+                            print(
+                                f"NaN detected for i={i}, j={j}, f_rabi={f_rabi}, f_larmor={f_larmor}, f_drive={f_drive}")
+            else:
+                result[i, j] = 0.0
+
+    df_crosstalk_matrix = pd.DataFrame(result, index=df_rabi.index, columns=df_rabi.columns)
+
+    return df_crosstalk_matrix
+
+def crosstalk_metric(larmor_frequencies, mode='max'):
+    df_crosstalk = get_crosstalk_df(df_local, df_rabi_local, larmor_frequencies=larmor_frequencies)
+    # summed_qubit_crosstalk = df_crosstalk.sum(axis=1) - 1
+    # df['crosstalk'] = summed_qubit_crosstalk
+    # df_crosstalk_central = df_crosstalk[df['tile'] == 4].dropna().sum(axis=1)
+    # print("Evaluating:", larmor_frequencies)
+    # print("Crosstalk:", df_crosstalk_central.max())
+    if mode == 'max':
+        return df_crosstalk[df['tile'] == 4].dropna().max(axis=1).max()
+    elif mode == 'sum':
+        return df_crosstalk[df['tile'] == 4].dropna().sum(axis=1).max()
+
+def crosstalk_metric_reduced_larmors(reduced_larmor_frequencies, mode='max'):
+    reduced_larmor_frequencies = list(reduced_larmor_frequencies)
+    reduced_larmor_frequencies = [400, 200] + reduced_larmor_frequencies
+    larmor_frequencies = reduced_larmor_frequencies + (reduced_larmor_frequencies[2:4] +
+                                                       reduced_larmor_frequencies[0:2] +
+                                                       reduced_larmor_frequencies[6:8] +
+                                                       reduced_larmor_frequencies[4:6])
+    crosstalk = crosstalk_metric(larmor_frequencies, mode=mode)
+    # print('--------------------------------------------')
+    # print("Evaluating reduced Larmor frequencies:", reduced_larmor_frequencies)
+    print(crosstalk)
+    return crosstalk
 
 # %% drive efficiency nearest neighbours
 
@@ -239,17 +309,6 @@ plt.show()
 
 # %% assign Larmor frequencies to the qubits (one for each subnumber in the tile)
 
-def f_rabi_function(f_rabi, f_rabi_target, f_larmor, f_drive):
-    if f_rabi == 0:
-        return 0.0
-    t_rabi = 1 / (2*f_rabi_target)
-    return f_rabi ** 2 / (2 * (f_rabi ** 2 + (f_larmor - f_drive) ** 2)) * (1 - np.cos(2*np.pi*np.sqrt(f_rabi**2 + (f_larmor - f_drive)**2) * t_rabi))
-
-def f_rabi_function_envelope(f_rabi, f_larmor, f_drive):
-    if f_rabi == 0:
-        return 0.0
-    return f_rabi ** 2 / (f_rabi ** 2 + (f_larmor - f_drive) ** 2)
-
 f_rabi = 5  # MHz
 f_rabi_target = 5  # MHz
 f_larmor = 300  # MHz
@@ -266,39 +325,6 @@ plt.show()
 
 # %%
 
-def get_crosstalk_df(df, df_rabi, larmor_frequencies=[300]*16):
-    df_larmor_const = df.copy()
-    for subnumber in sorted(df_larmor_const['subnumber'].unique()):
-        # assign the same Larmor frequency to all qubits with the same subnumber
-        larmor_freq = larmor_frequencies[subnumber - 1]  # subnumber starts at 1
-        df_larmor_const.loc[df_larmor_const['subnumber'] == subnumber, 'larmor_frequency'] = larmor_freq
-
-    qubit_to_larmor = df_larmor_const['larmor_frequency'].to_dict()
-    gate_to_larmor = (
-        df_larmor_const.set_index('plunger_name')['larmor_frequency']
-        .dropna()
-        .to_dict()
-    )
-    result = np.zeros_like(df_rabi.values, dtype=float)
-    for i, qubit in enumerate(df_rabi.index):
-        f_larmor = qubit_to_larmor[qubit]
-        for j, gate in enumerate(df_rabi.columns):
-            f_rabi = df_rabi.iat[i, j]
-            if i != j:
-                if f_rabi != 0:
-                    f_drive = gate_to_larmor.get(gate, np.nan)
-                    if not np.isnan(f_drive):
-                        result[i, j] = f_rabi_function_envelope(f_rabi, f_larmor, f_drive)
-                        if np.isnan(result[i, j]):
-                            print(
-                                f"NaN detected for i={i}, j={j}, f_rabi={f_rabi}, f_larmor={f_larmor}, f_drive={f_drive}")
-            else:
-                result[i, j] = 0.0
-
-    df_crosstalk_matrix = pd.DataFrame(result, index=df_rabi.index, columns=df_rabi.columns)
-    
-    return df_crosstalk_matrix
-
 # df_crosstalk = get_crosstalk_df(df, df_rabi, larmor_frequencies=[300]*16)
 #
 # summed_qubit_crosstalk = df_crosstalk.sum(axis=1) - 1
@@ -312,31 +338,6 @@ def get_crosstalk_df(df, df_rabi, larmor_frequencies=[300]*16):
 df_local = df.copy()
 df_rabi_local = df_rabi.copy()
 
-def crosstalk_metric(larmor_frequencies, mode='max'):
-    df_crosstalk = get_crosstalk_df(df_local, df_rabi_local, larmor_frequencies=larmor_frequencies)
-    # summed_qubit_crosstalk = df_crosstalk.sum(axis=1) - 1
-    # df['crosstalk'] = summed_qubit_crosstalk
-    # df_crosstalk_central = df_crosstalk[df['tile'] == 4].dropna().sum(axis=1)
-    # print("Evaluating:", larmor_frequencies)
-    # print("Crosstalk:", df_crosstalk_central.max())
-    if mode == 'max':
-        return df_crosstalk[df['tile'] == 4].dropna().max(axis=1).max()
-    elif mode == 'sum':
-        return df_crosstalk[df['tile'] == 4].dropna().sum(axis=1).max()
-
-def crosstalk_metric_reduced_larmors(reduced_larmor_frequencies, mode='max'):
-    reduced_larmor_frequencies = list(reduced_larmor_frequencies)
-    reduced_larmor_frequencies = [400, 200] + reduced_larmor_frequencies
-    larmor_frequencies = reduced_larmor_frequencies + (reduced_larmor_frequencies[2:4] +
-                                                       reduced_larmor_frequencies[0:2] +
-                                                       reduced_larmor_frequencies[6:8] +
-                                                       reduced_larmor_frequencies[4:6])
-    crosstalk = crosstalk_metric(larmor_frequencies, mode=mode)
-    # print('--------------------------------------------')
-    # print("Evaluating reduced Larmor frequencies:", reduced_larmor_frequencies)
-    print(crosstalk)
-    return crosstalk
-
 
 # %%
 
@@ -348,10 +349,13 @@ reduced_larmor_frequencies_bounds = [(350, 400), (200, 250),
 # Define how many generations you expect
 maxiter = 20
 pbar = tqdm(total=maxiter, desc="Optimizing")
+
+
+fitness_history = []
+
 def callback_fn(xk, convergence):
     pbar.update(1)
 
-fitness_history = []
 def track_evolution(xk, convergence):
     current_best = crosstalk_metric_reduced_larmors(xk, mode='max')
     fitness_history.append(current_best)
@@ -559,7 +563,6 @@ plt.savefig('qubit_array_frequencies.pdf', dpi=300, transparent=True)
 plt.show()
 
 # %%
-import numpy as np
 
 best_frequencies_tile = [400.00, 200.00, 381.04, 216.91,
                          253.21, 331.23, 268.83, 347.48,

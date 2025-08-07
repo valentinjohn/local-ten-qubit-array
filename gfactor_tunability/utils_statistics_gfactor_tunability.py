@@ -1,5 +1,4 @@
 # %% imports
-import matplotlib.pyplot as plt
 
 from utils import *
 from utils.utils import apply_dark_background
@@ -187,6 +186,7 @@ def gfactor_tunability_plot(uuids, gates, qubit, num_holes, plot=True, uuid_limi
     fig.suptitle(f'{qubit} ({num_holes})', size=12, weight='bold')
     fig.savefig(os.path.join(subfolder, f"{file_name}.png"), dpi=300, transparent=True)
     fig.savefig(os.path.join(subfolder, f"{file_name}.pdf"), dpi=300, transparent=True)
+    print(f'Saved figure {file_name}.pdf to {subfolder}')
 
     plt.show()
 
