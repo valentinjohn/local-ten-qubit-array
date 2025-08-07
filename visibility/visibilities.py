@@ -1,16 +1,10 @@
 from pathlib import Path
-from config import DATA_DIR
 
-data_path = DATA_DIR
 import json
 from config import DATA_DIR, PROJECT_DIR
 from utils.utils import *
-
-# %%
-import utils.analysis_tools as tools
-import matplotlib.pyplot as plt
 import numpy as np
-from utils_final_figures import get_data, get_fname, load_xr_hdf5, find_m1_fraction
+from utils.utils_final_figures import get_fname, load_xr_hdf5, find_m1_fraction
 
 # %%
 
